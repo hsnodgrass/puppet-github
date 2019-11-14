@@ -17,30 +17,30 @@ class github::listener {
   file {
     "${wwwroot}/config.ru":
       ensure  => present,
-      content => template("github/config.ru.erb"),
+      content => template('github/config.ru.erb'),
       owner   => $user,
       group   => $group,
-      mode    => "0644";
+      mode    => '0644';
     "${wwwroot}/listener.rb":
-      ensure  => present,
-      source  => "puppet:///modules/github/listener.rb",
-      owner   => $user,
-      group   => $group,
-      mode    => "0644";
+      ensure => present,
+      source => 'puppet:///modules/github/listener.rb',
+      owner  => $user,
+      group  => $group,
+      mode   => '0644';
     "${wwwroot}/public":
-      ensure  => directory,
-      owner   => $user,
-      group   => $group,
-      mode    => "0755";
+      ensure => directory,
+      owner  => $user,
+      group  => $group,
+      mode   => '0755';
     "${wwwroot}/tmp":
-      ensure  => directory,
-      owner   => $user,
-      group   => $group,
-      mode    => "0755";
+      ensure => directory,
+      owner  => $user,
+      group  => $group,
+      mode   => '0755';
   }
 
   exec { "touch ${wwwroot}/tmp/restart.txt":
-    path        => [ "/usr/bin", "/bin" ],
+    path        => [ '/usr/bin', '/bin' ],
     user        => $user,
     group       => $group,
     refreshonly => true,
@@ -56,16 +56,24 @@ class github::listener {
     mode  => '0600',
   }
 
-  package { "sinatra":
-    ensure    => present,
-    provider  => "gem",
+  package { 'sinatra':
+    ensure   => present,
+    provider => 'gem',
   }
 
   apache::vhost { $vhost_name:
-    port     => "4567",
-    priority => "20",
-    docroot  => "${wwwroot}/public",
-    ssl      => false,
-    template => "github/github-listener.conf.erb",
+    port        => '4567',
+    priority    => '20',
+    docroot     => "${wwwroot}/public",
+    ssl         => false,
+    directories => [
+      {
+        'path'    => "${wwwroot}/public",
+        'allow'   => 'from all',
+        'options' => '-MultiViews',
+      },
+    ],
+    log_level   => 'warn',
+    access_log  => true,
   }
 }
